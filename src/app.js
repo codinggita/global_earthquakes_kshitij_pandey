@@ -5,6 +5,7 @@ const compression = require('compression');
 const cookieParser = require('cookie-parser');
 const morgan = require('morgan');
 const config = require('./config');
+const connectDB = require('./database');
 
 const app = express();
 
@@ -66,6 +67,9 @@ app.use('*', (req, res) => {
 // ==========================================
 // 🚀 SERVER INIT
 // ==========================================
+
+// Connect to MongoDB Database
+connectDB();
 
 const server = app.listen(config.port, () => {
   console.log(`===================================================`);
