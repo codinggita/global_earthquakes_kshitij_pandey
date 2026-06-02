@@ -1,0 +1,35 @@
+{
+  "name": "global-earthquake-analytics-api",
+  "version": "1.0.0",
+  "description": "A production-grade REST API for global earthquake analytics built with Node.js, Express.js, MongoDB & Mongoose. Covers 10 years of seismic data (M4.5+) with authentication, analytics, and advanced querying.",
+  "main": "src/app.js",
+  "author": "Kshitij Pandey",
+  "license": "MIT",
+  "private": true,
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js",
+    "lint": "eslint src/ --ext .js",
+    "lint:fix": "eslint src/ --ext .js --fix",
+    "import:data": "node src/scripts/importData.js",
+    "test": "echo \"Tests will be added in a later PR\" && exit 0"
+  },
+  "keywords": [
+    "earthquake",
+    "seismic",
+    "analytics",
+    "rest-api",
+    "node",
+    "express",
+    "mongodb",
+    "mongoose",
+    "jwt",
+    "backend"
+  ],
+  "dependencies": {},
+  "devDependencies": {}
+}
