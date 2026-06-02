@@ -6,6 +6,7 @@ const cookieParser = require('cookie-parser');
 const morgan = require('morgan');
 const config = require('./config');
 const connectDB = require('./database');
+const routes = require('./routes');
 
 const app = express();
 
@@ -45,16 +46,8 @@ if (config.env === 'development') {
 // 🌐 BASE ROUTES
 // ==========================================
 
-// Simple Health Check Endpoint
-app.get(`/api/${config.apiVersion}/health`, (req, res) => {
-  res.status(200).json({
-    status: 'success',
-    message: 'Global Earthquake Analytics API is online.',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    env: config.env
-  });
-});
+// Mount all API routes
+app.use(`/api/${config.apiVersion}`, routes);
 
 // Fallback Route Handler for 404 (Not Found)
 app.use('*', (req, res) => {
