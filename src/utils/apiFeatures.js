@@ -118,6 +118,19 @@ class APIFeatures {
 
     return this;
   }
+
+  /**
+   * 4. Pagination system
+   */
+  paginate() {
+    const page = parseInt(this.queryString.page, 10) || 1;
+    const limit = parseInt(this.queryString.limit, 10) || 20;
+    const skip = (page - 1) * limit;
+
+    this.query = this.query.skip(skip).limit(limit);
+
+    return this;
+  }
 }
 
 module.exports = APIFeatures;

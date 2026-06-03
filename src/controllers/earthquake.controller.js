@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const Earthquake = require('../models/earthquake.model');
 const AppError = require('../utils/AppError');
 const asyncHandler = require('../utils/asyncHandler');
-const { sendSuccess, sendCreated, sendNoContent } = require('../utils/responseFormatter');
+const { sendSuccess, sendCreated, sendNoContent, sendPaginated } = require('../utils/responseFormatter');
 const APIFeatures = require('../utils/apiFeatures');
 
 /**
@@ -16,23 +16,28 @@ const createEarthquake = asyncHandler(async (req, res, next) => {
 });
 
 /**
- * @desc      Get all earthquake records with optional limit query param
+ * @desc      Get all earthquake records with filtering, sorting and pagination
  * @route     GET /api/v1/earthquakes
  * @access    Public
  */
 const getEarthquakes = asyncHandler(async (req, res, next) => {
-  const limit = parseInt(req.query.limit, 10) || 100;
-  
+  const page = parseInt(req.query.page, 10) || 1;
+  const limit = parseInt(req.query.limit, 10) || 20;
+
   const features = new APIFeatures(Earthquake.find(), req.query)
     .filter()
     .sort()
     .limitFields();
 
-  // Enforce baseline query limit to prevent heap exhaustion before full pagination is added in PR-12
-  features.query = features.query.limit(limit);
+  // Get total count of matching documents for pagination metadata calculations
+  const total = await Earthquake.countDocuments(features.query.getFilter());
+
+  // Apply skip-limit logic to query
+  features.paginate();
 
   const earthquakes = await features.query;
-  sendSuccess(res, { earthquakes });
+  
+  sendPaginated(res, earthquakes, total, page, limit, 'earthquakes');
 });
 
 /**
