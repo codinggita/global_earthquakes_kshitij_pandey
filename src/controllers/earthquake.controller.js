@@ -3,6 +3,7 @@ const Earthquake = require('../models/earthquake.model');
 const AppError = require('../utils/AppError');
 const asyncHandler = require('../utils/asyncHandler');
 const { sendSuccess, sendCreated, sendNoContent } = require('../utils/responseFormatter');
+const APIFeatures = require('../utils/apiFeatures');
 
 /**
  * @desc      Create a new earthquake record
@@ -21,7 +22,16 @@ const createEarthquake = asyncHandler(async (req, res, next) => {
  */
 const getEarthquakes = asyncHandler(async (req, res, next) => {
   const limit = parseInt(req.query.limit, 10) || 100;
-  const earthquakes = await Earthquake.find().sort({ time: -1 }).limit(limit);
+  
+  const features = new APIFeatures(Earthquake.find(), req.query)
+    .filter()
+    .sort()
+    .limitFields();
+
+  // Enforce baseline query limit to prevent heap exhaustion before full pagination is added in PR-12
+  features.query = features.query.limit(limit);
+
+  const earthquakes = await features.query;
   sendSuccess(res, { earthquakes });
 });
 
