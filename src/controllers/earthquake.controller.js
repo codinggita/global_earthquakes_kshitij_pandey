@@ -112,10 +112,154 @@ const deleteEarthquake = asyncHandler(async (req, res, next) => {
   sendNoContent(res);
 });
 
+/**
+ * @desc      Get advanced earthquake aggregation statistics
+ * @route     GET /api/v1/earthquakes/stats
+ * @access    Public
+ */
+const getEarthquakeStats = asyncHandler(async (req, res, next) => {
+  // 1. Overall stats
+  const overallStats = await Earthquake.aggregate([
+    {
+      $group: {
+        _id: null,
+        totalEarthquakes: { $sum: 1 },
+        avgMagnitude: { $avg: '$mag' },
+        minMagnitude: { $min: '$mag' },
+        maxMagnitude: { $max: '$mag' },
+        avgDepth: { $avg: '$depth' },
+        minDepth: { $min: '$depth' },
+        maxDepth: { $max: '$depth' }
+      }
+    },
+    {
+      $project: {
+        _id: 0,
+        totalEarthquakes: 1,
+        avgMagnitude: { $round: ['$avgMagnitude', 2] },
+        minMagnitude: 1,
+        maxMagnitude: 1,
+        avgDepth: { $round: ['$avgDepth', 2] },
+        minDepth: 1,
+        maxDepth: 1
+      }
+    }
+  ]);
+
+  // 2. Group by country (Top 10 country/region spots, computed dynamically from place field)
+  const statsByCountry = await Earthquake.aggregate([
+    {
+      $project: {
+        mag: 1,
+        depth: 1,
+        placeParts: { $split: ['$place', ', '] }
+      }
+    },
+    {
+      $project: {
+        mag: 1,
+        depth: 1,
+        country: { $arrayElemAt: ['$placeParts', -1] }
+      }
+    },
+    {
+      $group: {
+        _id: '$country',
+        count: { $sum: 1 },
+        avgMagnitude: { $avg: '$mag' },
+        avgDepth: { $avg: '$depth' }
+      }
+    },
+    {
+      $project: {
+        country: { $ifNull: ['$_id', 'Oceanic / International Waters'] },
+        _id: 0,
+        count: 1,
+        avgMagnitude: { $round: ['$avgMagnitude', 2] },
+        avgDepth: { $round: ['$avgDepth', 2] }
+      }
+    },
+    { $sort: { count: -1 } },
+    { $limit: 10 }
+  ]);
+
+  // 3. Group by magnitude category (Computed dynamically)
+  const statsByCategory = await Earthquake.aggregate([
+    {
+      $project: {
+        mag: 1,
+        depth: 1,
+        magnitudeCategory: {
+          $switch: {
+            branches: [
+              { case: { $lt: ['$mag', 5.0] }, then: 'Light' },
+              { case: { $lt: ['$mag', 6.0] }, then: 'Moderate' },
+              { case: { $lt: ['$mag', 7.0] }, then: 'Strong' },
+              { case: { $lt: ['$mag', 8.0] }, then: 'Major' }
+            ],
+            default: 'Great'
+          }
+        }
+      }
+    },
+    {
+      $group: {
+        _id: '$magnitudeCategory',
+        count: { $sum: 1 },
+        avgMagnitude: { $avg: '$mag' },
+        avgDepth: { $avg: '$depth' }
+      }
+    },
+    {
+      $project: {
+        category: '$_id',
+        _id: 0,
+        count: 1,
+        avgMagnitude: { $round: ['$avgMagnitude', 2] },
+        avgDepth: { $round: ['$avgDepth', 2] }
+      }
+    },
+    { $sort: { count: -1 } }
+  ]);
+
+  // 4. Time series: Group by year-month
+  const statsByTime = await Earthquake.aggregate([
+    {
+      $group: {
+        _id: {
+          year: { $year: '$time' },
+          month: { $month: '$time' }
+        },
+        count: { $sum: 1 },
+        avgMagnitude: { $avg: '$mag' }
+      }
+    },
+    {
+      $project: {
+        year: '$_id.year',
+        month: '$_id.month',
+        _id: 0,
+        count: 1,
+        avgMagnitude: { $round: ['$avgMagnitude', 2] }
+      }
+    },
+    { $sort: { year: -1, month: -1 } },
+    { $limit: 12 } // Last 12 active months
+  ]);
+
+  sendSuccess(res, {
+    summary: overallStats[0] || {},
+    byCountry: statsByCountry,
+    byCategory: statsByCategory,
+    byTime: statsByTime
+  });
+});
+
 module.exports = {
   createEarthquake,
   getEarthquakes,
   getEarthquakeById,
   updateEarthquake,
-  deleteEarthquake
+  deleteEarthquake,
+  getEarthquakeStats
 };

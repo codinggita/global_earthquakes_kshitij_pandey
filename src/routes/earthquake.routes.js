@@ -14,6 +14,10 @@ router.route('/')
   .get(listQueryRules, validate, earthquakeController.getEarthquakes)
   .post(createEarthquakeRules, validate, earthquakeController.createEarthquake);
 
+// GET /api/v1/earthquakes/stats
+router.route('/stats')
+  .get(earthquakeController.getEarthquakeStats);
+
 // GET, PATCH, DELETE /api/v1/earthquakes/:id
 router.route('/:id')
   .get(idParamRules, validate, earthquakeController.getEarthquakeById)
