@@ -8,21 +8,24 @@ const {
   idParamRules
 } = require('../validators/earthquake.validator');
 const validate = require('../middleware/validate');
+const { protect, restrictTo } = require('../middleware/auth.middleware');
 
-// GET /api/v1/earthquakes & POST /api/v1/earthquakes
+// GET /api/v1/earthquakes  — public
+// POST /api/v1/earthquakes — admin only
 router.route('/')
   .get(listQueryRules, validate, earthquakeController.getEarthquakes)
-  .post(createEarthquakeRules, validate, earthquakeController.createEarthquake);
+  .post(protect, restrictTo('admin'), createEarthquakeRules, validate, earthquakeController.createEarthquake);
 
-// GET /api/v1/earthquakes/stats
+// GET /api/v1/earthquakes/stats — requires login (any role)
 router.route('/stats')
-  .get(earthquakeController.getEarthquakeStats);
+  .get(protect, earthquakeController.getEarthquakeStats);
 
-// GET, PATCH, DELETE /api/v1/earthquakes/:id
+// GET    /api/v1/earthquakes/:id — public
+// PATCH  /api/v1/earthquakes/:id — admin only
+// DELETE /api/v1/earthquakes/:id — admin only
 router.route('/:id')
   .get(idParamRules, validate, earthquakeController.getEarthquakeById)
-  .patch(idParamRules, updateEarthquakeRules, validate, earthquakeController.updateEarthquake)
-  .delete(idParamRules, validate, earthquakeController.deleteEarthquake);
+  .patch(protect, restrictTo('admin'), idParamRules, updateEarthquakeRules, validate, earthquakeController.updateEarthquake)
+  .delete(protect, restrictTo('admin'), idParamRules, validate, earthquakeController.deleteEarthquake);
 
 module.exports = router;
-

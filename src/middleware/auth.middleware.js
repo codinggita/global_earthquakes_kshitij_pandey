@@ -51,6 +51,23 @@ const protect = asyncHandler(async (req, res, next) => {
   next();
 });
 
+/**
+ * Middleware to restrict route access to specific roles.
+ * Must be used AFTER the protect middleware (req.user must be set).
+ * @param  {...string} roles - Allowed roles (e.g. 'admin', 'user')
+ */
+const restrictTo = (...roles) => {
+  return (req, res, next) => {
+    if (!roles.includes(req.user.role)) {
+      return next(
+        new AppError('You do not have permission to perform this action.', 403)
+      );
+    }
+    next();
+  };
+};
+
 module.exports = {
-  protect
+  protect,
+  restrictTo
 };
