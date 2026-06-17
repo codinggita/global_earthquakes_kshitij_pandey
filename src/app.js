@@ -9,6 +9,9 @@ const connectDB = require('./database');
 const routes = require('./routes');
 const AppError = require('./utils/AppError');
 const globalErrorHandler = require('./middleware/errorHandler');
+const requestTimer = require('./middleware/requestTimer');
+const logger = require('./middleware/logger');
+const { globalLimiter } = require('./middleware/rateLimiter');
 
 const app = express();
 
@@ -16,13 +19,24 @@ const app = express();
 // 🛡️ SECURITY & UTILITY MIDDLEWARES
 // ==========================================
 
-// Set secure HTTP headers to mitigate cross-site scripting (XSS), clickjacking, etc.
+// Measure and expose X-Response-Time header on every response
+app.use(requestTimer);
+
+// Structured request/response logger (writes to src/logs/access.log)
+app.use(logger);
+
+// Set secure HTTP headers to mitigate XSS, clickjacking, etc.
 app.use(helmet());
 
-// Enable Cross-Origin Resource Sharing (CORS) based on configuration origin rules
+// Global rate limiter — 100 req/15 min per IP
+app.use('/api', globalLimiter);
+
+// Enable Cross-Origin Resource Sharing based on configuration origin rules
 app.use(cors({
   origin: config.cors.origin,
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 // Compress response bodies for all requests to improve payload transit times

@@ -1,573 +1,352 @@
-# 🌍 Earthquake Analytics API
+# 🌍 Global Earthquake Analytics API
 
-A production-grade backend API built using **Node.js**, **Express.js**, **MongoDB**, and **Mongoose** for managing, analyzing, and monitoring global earthquake data.
-
-This project demonstrates industry-standard backend development practices including:
-
-* RESTful API Design
-* MVC Architecture
-* MongoDB Data Modeling
-* Advanced Querying
-* Aggregation Pipelines
-* Authentication & Authorization
-* Middleware Architecture
-* Error Handling
-* Validation
-* Pagination
-* Sorting
-* Search
-* Rate Limiting
-* Security Best Practices
+A production-grade REST API for querying, analyzing, and managing global earthquake data.  
+Built with **Node.js · Express · MongoDB · Mongoose** following a strict MVC architecture.
 
 ---
 
-## 🚀 Project Overview
+## 📑 Table of Contents
 
-The Earthquake Analytics API provides a centralized system to:
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [Getting Started](#getting-started)
+- [Environment Variables](#environment-variables)
+- [API Reference](#api-reference)
+- [Authentication](#authentication)
+- [Rate Limiting](#rate-limiting)
+- [Security](#security)
+- [Postman Collection](#postman-collection)
+- [Deployment](#deployment)
 
-* Store earthquake records
-* Perform CRUD operations
-* Filter earthquake data
-* Search records
-* Generate analytics
-* Calculate statistics
-* Manage user authentication
-* Protect sensitive routes
-* Handle large datasets efficiently
+---
 
-The project uses a real-world earthquake dataset containing approximately **10 years of global earthquake records**.
+## ✨ Features
+
+| Category | Details |
+|---|---|
+| **CRUD** | Create · Read · Update · Delete · Bulk ops on earthquake records |
+| **Filtering** | Country · Place · Status · Network · Mag · Depth · Gap · RMS |
+| **Pagination** | Page · Limit · Metadata |
+| **Sorting** | Magnitude · Depth · Time · Gap · RMS |
+| **Search** | Regex / keyword search across place names |
+| **Analytics** | Aggregation stats, magnitude distribution, depth analysis |
+| **Auth** | Register · Login · Logout · JWT Access + Refresh Token rotation |
+| **RBAC** | Admin-only write routes · user-level read routes |
+| **Rate Limiting** | Global 100/15min · Auth 20/15min · Analytics 30/10min |
+| **Security** | Helmet · CORS · Secure cookies · bcrypt password hashing |
+| **Caching** | In-memory GET cache (30–60s TTL per route) |
+| **Logging** | Structured JSON file logger + colourised stdout |
+| **HEAD/OPTIONS** | Full HTTP method support on all major routes |
 
 ---
 
 ## 🛠 Tech Stack
 
-### Backend
-
-* Node.js
-* Express.js
-
-### Database
-
-* MongoDB
-* Mongoose
-
-### Authentication
-
-* JWT (JSON Web Token)
-* bcrypt
-
-### Security
-
-* Helmet
-* CORS
-* Express Rate Limit
-
-### Validation
-
-* Express Validator
-
-### Utilities
-
-* dotenv
-* cookie-parser
-* compression
-* morgan
+- **Runtime**: Node.js v18+
+- **Framework**: Express.js v4
+- **Database**: MongoDB via Mongoose
+- **Auth**: JWT (jsonwebtoken) + bcryptjs
+- **Validation**: express-validator
+- **Rate Limiting**: express-rate-limit
+- **Security**: Helmet, CORS
+- **Logging**: Morgan + custom structured logger
+- **Compression**: compression
 
 ---
 
-## 📁 Folder Structure
+## 📁 Project Structure
 
-```bash
+```
 src/
-│
-├── config/
-│   └── db.js
-│
-├── controllers/
-├── services/
+├── analytics/          # Aggregation query builders
+├── config/             # Centralised environment config
+├── constants/          # Shared constants
+├── controllers/        # Request handlers (MVC Controllers)
+│   ├── auth.controller.js
+│   ├── earthquake.controller.js
+│   ├── health.controller.js
+│   ├── jwt.controller.js
+│   └── user.controller.js
+├── database/           # MongoDB connection setup
+├── docs/               # API documentation assets
+├── helpers/            # Shared helper utilities
+├── logs/               # access.log (auto-created)
+├── middleware/
+│   ├── auth.middleware.js    # protect + restrictTo
+│   ├── cache.js              # In-memory GET cache
+│   ├── errorHandler.js       # Global error handler
+│   ├── logger.js             # Structured JSON logger
+│   ├── rateLimiter.js        # Route-specific limiters
+│   ├── requestTimer.js       # X-Response-Time header
+│   └── validate.js           # express-validator runner
 ├── models/
+│   ├── earthquake.model.js
+│   └── user.model.js
 ├── routes/
-├── middlewares/
-├── validators/
+│   ├── auth.routes.js
+│   ├── earthquake.routes.js
+│   ├── health.routes.js
+│   ├── index.js
+│   ├── jwt.routes.js
+│   └── user.routes.js
+├── scripts/            # Seed & utility scripts
+├── services/           # Business logic services
 ├── utils/
-├── helpers/
-├── constants/
-├── analytics/
-├── scripts/
-├── docs/
-│
-├── app.js
-└── server.js
+│   ├── AppError.js
+│   ├── asyncHandler.js
+│   └── responseFormatter.js
+├── validators/
+│   ├── auth.validator.js
+│   └── earthquake.validator.js
+└── app.js              # Express app entry point
 ```
 
 ---
 
-## 🏗 Architecture
+## 🚀 Getting Started
 
-The project follows the **MVC Architecture**.
+### Prerequisites
 
-### Model
+- Node.js v18+
+- MongoDB (local or Atlas)
 
-Responsible for:
-
-* MongoDB Schema
-* Database Structure
-* Validation Rules
-
-### Controller
-
-Responsible for:
-
-* Handling Requests
-* Sending Responses
-
-### Service
-
-Responsible for:
-
-* Business Logic
-* Database Operations
-
-### Routes
-
-Responsible for:
-
-* API Endpoint Definitions
-
-### Middleware
-
-Responsible for:
-
-* Authentication
-* Validation
-* Logging
-* Error Handling
-
----
-
-## 📊 Dataset Information
-
-The application uses a global earthquake dataset containing fields such as:
-
-```json
-{
-  "time": "2015-12-30T23:20:56Z",
-  "latitude": 0.0229,
-  "longitude": 123.8194,
-  "depth": 143.05,
-  "mag": 4.6,
-  "magType": "mb",
-  "gap": 51,
-  "rms": 0.83,
-  "net": "us",
-  "place": "Indonesia",
-  "type": "earthquake",
-  "status": "reviewed"
-}
-```
-
----
-
-## ⚙️ Installation
-
-### Clone Repository
+### Installation
 
 ```bash
-git clone <repository-url>
-```
+# 1. Clone the repository
+git clone https://github.com/Kshitij-Pandey2605/global_earthquakes_kshitij_pandey.git
+cd global_earthquakes_kshitij_pandey
 
-### Navigate to Project Directory
-
-```bash
-cd earthquake-analytics-api
-```
-
-### Install Dependencies
-
-```bash
+# 2. Install dependencies
 npm install
-```
 
-### Create Environment Variables
+# 3. Configure environment
+cp .env.example .env
+# Edit .env with your MongoDB URI and JWT secrets
 
-Create a `.env` file:
+# 4. Seed dataset (optional)
+npm run seed
 
-```env
-PORT=5000
-
-MONGO_URI=your_mongodb_connection_string
-
-JWT_SECRET=your_secret_key
-
-JWT_EXPIRES_IN=7d
-
-NODE_ENV=development
-```
-
-### Start Development Server
-
-```bash
+# 5. Start development server
 npm run dev
 ```
 
+The API will be available at: `http://localhost:5000/api/v1`
+
 ---
 
-## 🔗 API Base URL
+## ⚙️ Environment Variables
 
-```bash
+Copy `.env.example` to `.env` and fill in your values:
+
+```env
+# Server
+PORT=5000
+NODE_ENV=development
+API_VERSION=v1
+
+# MongoDB
+MONGODB_URI=mongodb://127.0.0.1:27017/global_earthquakes
+
+# JWT
+JWT_SECRET=your_strong_secret_here
+JWT_EXPIRES_IN=15m
+JWT_COOKIE_EXPIRES_IN=7
+JWT_REFRESH_SECRET=your_strong_refresh_secret_here
+JWT_REFRESH_EXPIRE=7d
+
+# Security
+CORS_ORIGIN=*
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX=100
+```
+
+---
+
+## 📡 API Reference
+
+### Base URL
+```
 http://localhost:5000/api/v1
 ```
 
+### Health
+
+| Method | Route | Auth | Description |
+|--------|-------|------|-------------|
+| GET | `/health` | — | API status & uptime |
+
+### Authentication — `/auth`
+
+| Method | Route | Auth | Description |
+|--------|-------|------|-------------|
+| OPTIONS | `/auth/login` | — | Preflight |
+| POST | `/auth/register` | — | Register new user |
+| POST | `/auth/login` | — | Login, returns access + refresh tokens |
+| POST | `/auth/refresh` | — | Rotate refresh token |
+| POST | `/auth/logout` | — | Invalidate refresh token |
+| POST | `/auth/forgot-password` | — | Request password reset token |
+| POST | `/auth/reset-password/:token` | — | Reset password with token |
+| GET | `/auth/profile` | 🔐 User | Get own profile |
+| PATCH | `/auth/profile` | 🔐 User | Update name/email |
+| POST | `/auth/change-password` | 🔐 User | Change password |
+
+### JWT Protected — `/jwt`
+
+| Method | Route | Auth | Description |
+|--------|-------|------|-------------|
+| OPTIONS | `/jwt/profile` | 🔐 User | Preflight |
+| GET | `/jwt/profile` | 🔐 User | Profile via JWT namespace |
+| GET | `/jwt/dashboard` | 🔐 User | Session dashboard |
+| GET | `/jwt/private-earthquakes` | 🔐 User | Private data access demo |
+| GET | `/jwt/private-analytics` | 🔐 User | Private analytics demo |
+
+### Earthquakes — `/earthquakes`
+
+| Method | Route | Auth | Description |
+|--------|-------|------|-------------|
+| HEAD | `/earthquakes` | — | Metadata check |
+| OPTIONS | `/earthquakes` | — | Allowed methods |
+| GET | `/earthquakes` | — | List with filter/sort/paginate |
+| POST | `/earthquakes` | 🔐 Admin | Create record |
+| HEAD | `/earthquakes/stats` | 🔐 User | Stats metadata |
+| GET | `/earthquakes/stats` | 🔐 User | Aggregated statistics |
+| HEAD | `/earthquakes/:id` | — | Existence check |
+| OPTIONS | `/earthquakes/:id` | — | Allowed methods |
+| GET | `/earthquakes/:id` | — | Single record |
+| PATCH | `/earthquakes/:id` | 🔐 Admin | Update record |
+| DELETE | `/earthquakes/:id` | 🔐 Admin | Delete record |
+
+#### Query Parameters for GET /earthquakes
+
+| Param | Type | Example | Description |
+|-------|------|---------|-------------|
+| `page` | int | `1` | Page number |
+| `limit` | int | `20` | Results per page (max 100) |
+| `sort` | string | `mag` | Sort field |
+| `order` | string | `desc` | Sort direction |
+| `search` | string | `japan` | Keyword search on place |
+| `minMag` | float | `5.0` | Minimum magnitude |
+| `maxMag` | float | `9.0` | Maximum magnitude |
+| `minDepth` | float | `0` | Minimum depth (km) |
+| `maxDepth` | float | `700` | Maximum depth (km) |
+| `status` | string | `reviewed` | Earthquake status |
+| `country` | string | `Japan` | Filter by country |
+
+### Users — `/users`
+
+| Method | Route | Auth | Description |
+|--------|-------|------|-------------|
+| GET | `/users/me` | 🔐 User | Own profile |
+| DELETE | `/users/me` | 🔐 User | Deactivate own account |
+| GET | `/users` | 🔐 Admin | All users |
+| GET | `/users/:id` | 🔐 Admin | Single user |
+| PATCH | `/users/:id` | 🔐 Admin | Update user (incl. role) |
+| DELETE | `/users/:id` | 🔐 Admin | Soft-delete user |
+
 ---
 
-## 📌 Core Features
+## 🔐 Authentication
 
-### CRUD Operations
+This API uses a **dual-token JWT strategy**:
 
-* Create Earthquake
-* Read Earthquake
-* Update Earthquake
-* Delete Earthquake
-* Bulk Operations
+1. **Access Token** (short-lived, 15m) — sent in JSON response body and as `jwt` cookie
+2. **Refresh Token** (long-lived, 7d) — stored in MongoDB and sent as `refreshToken` cookie
 
-### Query Features
+### Flow
 
-* Filtering
-* Sorting
-* Pagination
-* Search
+```
+POST /auth/login
+  → { token: "<access_token>", refreshToken: "<refresh_token>" }
 
-### Analytics
+# Use access token on protected routes:
+Authorization: Bearer <access_token>
 
-* Magnitude Analysis
-* Depth Analysis
-* Country Analysis
-* Monthly Analysis
+# When access token expires:
+POST /auth/refresh  { "refreshToken": "<refresh_token>" }
+  → { token: "<new_access_token>", refreshToken: "<new_refresh_token>" }
 
-### Statistics
-
-* Total Records
-* Average Magnitude
-* Average Depth
-* Deepest Earthquake
-* Highest Magnitude
-
-### Security
-
-* JWT Authentication
-* Password Hashing
-* Route Protection
-* Rate Limiting
-
----
-
-## 🌍 Earthquake Routes
-
-### CRUD APIs
-
-| Method | Endpoint           |
-| ------ | ------------------ |
-| GET    | `/earthquakes`     |
-| GET    | `/earthquakes/:id` |
-| POST   | `/earthquakes`     |
-| PUT    | `/earthquakes/:id` |
-| PATCH  | `/earthquakes/:id` |
-| DELETE | `/earthquakes/:id` |
-
----
-
-## 🔎 Filtering Examples
-
-```http
-GET /earthquakes?country=Japan
-
-GET /earthquakes?status=reviewed
-
-GET /earthquakes?network=us
-
-GET /earthquakes?minMagnitude=5
-
-GET /earthquakes?maxDepth=100
+# Reuse detection: using an old refresh token → 403 + all sessions cleared
 ```
 
----
+### Roles
 
-## 📄 Pagination
+| Role | Permissions |
+|------|-------------|
+| `user` | Read earthquakes, stats, own profile |
+| `admin` | All user permissions + write earthquakes, manage users |
 
-```http
-GET /earthquakes?page=1&limit=10
-
-GET /earthquakes?page=2&limit=20
-```
-
-Example Response:
-
-```json
-{
-  "success": true,
-  "totalRecords": 1000,
-  "currentPage": 1,
-  "totalPages": 100,
-  "data": []
-}
-```
+To promote a user to admin, use `PATCH /users/:id { "role": "admin" }` with an existing admin account.
 
 ---
 
-## 🔀 Sorting
+## 🛡️ Rate Limiting
 
-```http
-GET /earthquakes?sort=magnitude
-
-GET /earthquakes?sort=depth
-
-GET /earthquakes?sort=time
-```
-
----
-
-## 🔍 Search
-
-```http
-GET /search/earthquakes?q=japan
-
-GET /search/earthquakes?q=indonesia
-
-GET /search/earthquakes?q=reviewed
-```
+| Limiter | Routes | Window | Max Requests |
+|---------|--------|--------|--------------|
+| Global | All `/api/*` | 15 min | 100 |
+| Auth | `/auth/login`, `/auth/register`, `/auth/forgot-password` | 15 min | 20 |
+| Analytics | `/earthquakes/stats`, `/jwt/private-*` | 10 min | 30 |
+| Search | `GET /earthquakes` | 10 min | 60 |
+| Admin | `POST/PATCH/DELETE /earthquakes`, `PATCH/DELETE /users/:id` | 10 min | 50 |
 
 ---
 
-## 📈 Analytics APIs
+## 🔒 Security
 
-* `/analytics/earthquakes/highest-magnitude`
-* `/analytics/earthquakes/deepest`
-* `/analytics/earthquakes/recent-activity`
-* `/analytics/earthquakes/country-analysis`
-* `/analytics/earthquakes/network-analysis`
-* `/analytics/earthquakes/magnitude-analysis`
-* `/analytics/earthquakes/depth-analysis`
-* `/analytics/earthquakes/monthly-analysis`
-
----
-
-## 📊 Statistics APIs
-
-* `/stats/earthquakes/count`
-* `/stats/earthquakes/highest-magnitude`
-* `/stats/earthquakes/deepest`
-* `/stats/earthquakes/average-depth`
-* `/stats/earthquakes/average-magnitude`
-* `/stats/earthquakes/country-count`
-* `/stats/earthquakes/type-count`
-* `/stats/earthquakes/network-count`
-* `/stats/earthquakes/reviewed-count`
-* `/stats/earthquakes/monthly-count`
+- **Helmet** — Sets 11 secure HTTP headers (XSS protection, HSTS, CSP, etc.)
+- **CORS** — Configured origin allowlist with explicit method and header allowances
+- **bcrypt** — Passwords hashed with cost factor 12
+- **Password change invalidation** — `passwordChangedAt` timestamp checked on every protected request
+- **Refresh token rotation** — Old tokens replaced on each refresh; reuse triggers full session purge
+- **Soft deletes** — Users are deactivated (not deleted) to preserve audit trail
+- **JSON body limit** — 10kb cap prevents large-payload DoS
+- **`select: false`** — Password and active fields excluded from default queries
 
 ---
 
-## 🔐 Authentication APIs
+## 📬 Postman Collection
 
-| Method | Endpoint                |
-| ------ | ----------------------- |
-| POST   | `/auth/register`        |
-| POST   | `/auth/login`           |
-| POST   | `/auth/logout`          |
-| GET    | `/auth/profile`         |
-| PATCH  | `/auth/profile`         |
-| POST   | `/auth/change-password` |
-| POST   | `/auth/forgot-password` |
-| POST   | `/auth/reset-password`  |
+Import `postman_collection.json` from the project root into Postman.
 
----
+**Quick start:**
+1. Import the collection
+2. Run **POST /auth/register** — access + refresh tokens auto-saved to collection variables
+3. All subsequent requests use `{{access_token}}` automatically
+4. Run **POST /auth/refresh** to rotate tokens when needed
 
-## 🛡 JWT Protected Routes
-
-```http
-GET /jwt/profile
-
-GET /jwt/dashboard
-
-GET /jwt/private-earthquakes
-
-GET /jwt/private-analytics
-```
-
-Authorization Header:
-
-```http
-Authorization: Bearer <token>
-```
+**To test admin routes:**
+1. Register a user
+2. Use a MongoDB client or the admin PATCH route to set `role: "admin"`
+3. Re-login and use the new token on admin-only endpoints
 
 ---
 
-## ⚡ Middleware
+## 🚀 Deployment
 
-### Logger Middleware
+### Production Checklist
 
-Tracks:
+- [ ] Set `NODE_ENV=production`
+- [ ] Use a strong, random `JWT_SECRET` (min 32 chars)
+- [ ] Use a separate strong `JWT_REFRESH_SECRET`
+- [ ] Set `CORS_ORIGIN` to your actual frontend domain
+- [ ] Use MongoDB Atlas or a managed database with SSL
+- [ ] Place API behind a reverse proxy (nginx/Caddy) for TLS termination
+- [ ] Enable `HTTPS` — secure cookies require it in production
+- [ ] Pipe `src/logs/access.log` to a log aggregator (Datadog, Loki, CloudWatch)
+- [ ] Consider Redis for distributed rate limiting at scale
 
-* Request Method
-* Request URL
-* Timestamp
-
-### Authentication Middleware
-
-Verifies JWT Tokens.
-
-### Rate Limiting Middleware
-
-Prevents API abuse.
-
-### Request Time Middleware
-
-Measures API response time.
-
-### Cache Middleware
-
-Improves API performance.
-
-### Global Error Middleware
-
-Handles application-wide errors consistently.
-
----
-
-## ❌ Error Handling
-
-The API handles:
-
-* Invalid IDs
-* Validation Errors
-* Unauthorized Access
-* Resource Not Found
-* Invalid Query Parameters
-* Invalid Pagination
-* Empty Search Requests
-* Invalid JSON Uploads
-
-Standard Error Response:
-
-```json
-{
-  "success": false,
-  "message": "Validation Failed",
-  "errors": []
-}
-```
-
----
-
-## 🚦 Rate Limiting
-
-Implemented using:
+### Environment
 
 ```bash
-express-rate-limit
+NODE_ENV=production node src/app.js
+# or via PM2:
+pm2 start src/app.js --name earthquake-api
 ```
-
-Protects:
-
-* Login APIs
-* Search APIs
-* Analytics APIs
-* Statistics APIs
-* Admin Routes
-
----
-
-## ⚙️ MongoDB Features Used
-
-### Indexing
-
-Indexes are created on:
-
-* magnitude
-* place
-* country
-* status
-* network
-* time
-
-### Aggregation Pipeline
-
-Stages used:
-
-* `$match`
-* `$group`
-* `$project`
-* `$sort`
-* `$limit`
-* `$avg`
-* `$sum`
-
----
-
-## 📦 Dataset Import
-
-Import earthquake dataset into MongoDB:
-
-```bash
-npm run seed
-```
-
-Seeder performs:
-
-* JSON Parsing
-* Validation
-* Duplicate Prevention
-* Bulk Insertion
-
----
-
-## 🧪 API Testing
-
-Testing performed using:
-
-* Postman
-
-Test Coverage:
-
-* CRUD APIs
-* Authentication APIs
-* Protected Routes
-* Analytics APIs
-* Validation Logic
-
----
-
-## 🔒 Security Measures
-
-* JWT Authentication
-* Password Hashing using bcrypt
-* Helmet Security Headers
-* CORS Configuration
-* Environment Variables
-* Rate Limiting
-* Input Validation
-
----
-
-## 🚀 Future Enhancements
-
-* Redis Caching
-* Docker Support
-* Swagger Documentation
-* CI/CD Pipeline
-* Microservices Architecture
-* Elasticsearch Integration
-* Kafka Event Streaming
-
----
-
-## 👨‍💻 Author
-
-**Kshitij Pandey**
-
-MERN Stack Developer | Backend Developer
 
 ---
 
 ## 📄 License
 
-This project is developed for educational, learning, and portfolio purposes.
+MIT © Kshitij Pandey

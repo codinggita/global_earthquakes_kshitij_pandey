@@ -1,0 +1,317 @@
+{
+  "info": {
+    "name": "Global Earthquake Analytics API",
+    "description": "Complete Postman collection for the Global Earthquake Analytics REST API. Covers Auth, JWT, RBAC, CRUD, Filtering, Analytics, and all HEAD/OPTIONS routes.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url",      "value": "http://localhost:5000/api/v1" },
+    { "key": "access_token",  "value": "" },
+    { "key": "refresh_token", "value": "" },
+    { "key": "eq_id",         "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "GET /health",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/health"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "OPTIONS /auth/login",
+          "request": { "method": "OPTIONS", "url": "{{base_url}}/auth/login" }
+        },
+        {
+          "name": "POST /auth/register",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "var json = pm.response.json();",
+            "pm.collectionVariables.set('access_token', json.token);",
+            "pm.collectionVariables.set('refresh_token', json.refreshToken);"
+          ], "type": "text/javascript" } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/auth/register",
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"testuser@example.com\",\n  \"password\": \"Password123\"\n}" }
+          }
+        },
+        {
+          "name": "POST /auth/login",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "var json = pm.response.json();",
+            "pm.collectionVariables.set('access_token', json.token);",
+            "pm.collectionVariables.set('refresh_token', json.refreshToken);"
+          ], "type": "text/javascript" } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/auth/login",
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"testuser@example.com\",\n  \"password\": \"Password123\"\n}" }
+          }
+        },
+        {
+          "name": "POST /auth/refresh",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "var json = pm.response.json();",
+            "pm.collectionVariables.set('access_token', json.token);",
+            "pm.collectionVariables.set('refresh_token', json.refreshToken);"
+          ], "type": "text/javascript" } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/auth/refresh",
+            "body": { "mode": "raw", "raw": "{\n  \"refreshToken\": \"{{refresh_token}}\"\n}" }
+          }
+        },
+        {
+          "name": "GET /auth/profile",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "url": "{{base_url}}/auth/profile"
+          }
+        },
+        {
+          "name": "PATCH /auth/profile",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/auth/profile",
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Updated Name\"\n}" }
+          }
+        },
+        {
+          "name": "POST /auth/change-password",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/auth/change-password",
+            "body": { "mode": "raw", "raw": "{\n  \"currentPassword\": \"Password123\",\n  \"newPassword\": \"NewPassword456\"\n}" }
+          }
+        },
+        {
+          "name": "POST /auth/forgot-password",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/auth/forgot-password",
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"testuser@example.com\"\n}" }
+          }
+        },
+        {
+          "name": "POST /auth/logout",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "url": "{{base_url}}/auth/logout"
+          }
+        }
+      ]
+    },
+    {
+      "name": "JWT Protected Routes",
+      "item": [
+        {
+          "name": "OPTIONS /jwt/profile",
+          "request": {
+            "method": "OPTIONS",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "url": "{{base_url}}/jwt/profile"
+          }
+        },
+        {
+          "name": "GET /jwt/profile",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "url": "{{base_url}}/jwt/profile"
+          }
+        },
+        {
+          "name": "GET /jwt/dashboard",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "url": "{{base_url}}/jwt/dashboard"
+          }
+        },
+        {
+          "name": "GET /jwt/private-earthquakes",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "url": "{{base_url}}/jwt/private-earthquakes"
+          }
+        },
+        {
+          "name": "GET /jwt/private-analytics",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "url": "{{base_url}}/jwt/private-analytics"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Earthquakes",
+      "item": [
+        {
+          "name": "HEAD /earthquakes",
+          "request": { "method": "HEAD", "url": "{{base_url}}/earthquakes" }
+        },
+        {
+          "name": "OPTIONS /earthquakes",
+          "request": { "method": "OPTIONS", "url": "{{base_url}}/earthquakes" }
+        },
+        {
+          "name": "GET /earthquakes",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "var json = pm.response.json();",
+            "if (json.data && json.data.earthquakes && json.data.earthquakes.length > 0) {",
+            "  pm.collectionVariables.set('eq_id', json.data.earthquakes[0]._id);",
+            "}"
+          ], "type": "text/javascript" } }],
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/earthquakes?page=1&limit=10&sort=mag&order=desc", "query": [
+              { "key": "page",  "value": "1" },
+              { "key": "limit", "value": "10" },
+              { "key": "sort",  "value": "mag" },
+              { "key": "order", "value": "desc" }
+            ]}
+          }
+        },
+        {
+          "name": "GET /earthquakes (filter by mag)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/earthquakes?minMag=5&maxMag=8", "query": [
+              { "key": "minMag", "value": "5" },
+              { "key": "maxMag", "value": "8" }
+            ]}
+          }
+        },
+        {
+          "name": "GET /earthquakes (search)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/earthquakes?search=japan", "query": [
+              { "key": "search", "value": "japan" }
+            ]}
+          }
+        },
+        {
+          "name": "GET /earthquakes/stats",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "url": "{{base_url}}/earthquakes/stats"
+          }
+        },
+        {
+          "name": "HEAD /earthquakes/stats",
+          "request": {
+            "method": "HEAD",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "url": "{{base_url}}/earthquakes/stats"
+          }
+        },
+        {
+          "name": "HEAD /earthquakes/:id",
+          "request": {
+            "method": "HEAD",
+            "url": "{{base_url}}/earthquakes/{{eq_id}}"
+          }
+        },
+        {
+          "name": "OPTIONS /earthquakes/:id",
+          "request": {
+            "method": "OPTIONS",
+            "url": "{{base_url}}/earthquakes/{{eq_id}}"
+          }
+        },
+        {
+          "name": "GET /earthquakes/:id",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/earthquakes/{{eq_id}}"
+          }
+        },
+        {
+          "name": "POST /earthquakes (admin only)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/earthquakes",
+            "body": { "mode": "raw", "raw": "{\n  \"id\": \"eq_test_001\",\n  \"mag\": 6.5,\n  \"place\": \"Test Location, Japan\",\n  \"time\": \"2024-01-01T00:00:00Z\",\n  \"status\": \"reviewed\",\n  \"type\": \"earthquake\",\n  \"depth\": 10\n}" }
+          }
+        },
+        {
+          "name": "PATCH /earthquakes/:id (admin only)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/earthquakes/{{eq_id}}",
+            "body": { "mode": "raw", "raw": "{\n  \"mag\": 7.1\n}" }
+          }
+        },
+        {
+          "name": "DELETE /earthquakes/:id (admin only)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "url": "{{base_url}}/earthquakes/{{eq_id}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users (Admin)",
+      "item": [
+        {
+          "name": "GET /users/me",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "url": "{{base_url}}/users/me"
+          }
+        },
+        {
+          "name": "GET /users (admin only)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "url": "{{base_url}}/users"
+          }
+        },
+        {
+          "name": "PATCH /users/:id (admin only)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/users/USER_ID_HERE",
+            "body": { "mode": "raw", "raw": "{\n  \"role\": \"admin\"\n}" }
+          }
+        },
+        {
+          "name": "DELETE /users/me (deactivate self)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "url": "{{base_url}}/users/me"
+          }
+        }
+      ]
+    }
+  ]
+}
