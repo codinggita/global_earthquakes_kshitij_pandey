@@ -9,23 +9,42 @@ const {
 } = require('../validators/earthquake.validator');
 const validate = require('../middleware/validate');
 const { protect, restrictTo } = require('../middleware/auth.middleware');
+const { analyticsLimiter, searchLimiter, adminLimiter } = require('../middleware/rateLimiter');
+const cache = require('../middleware/cache');
 
-// GET /api/v1/earthquakes  — public
-// POST /api/v1/earthquakes — admin only
+// ── Collection routes ───────────────────────────────────────────────────────
+// HEAD   /earthquakes → responds with status/headers, no body (metadata check)
+// GET    /earthquakes → public list with search/filter/pagination
+// POST   /earthquakes → admin only
 router.route('/')
-  .get(listQueryRules, validate, earthquakeController.getEarthquakes)
-  .post(protect, restrictTo('admin'), createEarthquakeRules, validate, earthquakeController.createEarthquake);
+  .head((req, res) => res.status(200).end())
+  .options((req, res) => {
+    res.setHeader('Allow', 'HEAD, GET, POST, OPTIONS');
+    res.status(204).end();
+  })
+  .get(searchLimiter, listQueryRules, validate, cache(30), earthquakeController.getEarthquakes)
+  .post(protect, restrictTo('admin'), adminLimiter, createEarthquakeRules, validate, earthquakeController.createEarthquake);
 
-// GET /api/v1/earthquakes/stats — requires login (any role)
+// ── Stats route ─────────────────────────────────────────────────────────────
+// HEAD   /earthquakes/stats → count metadata only
+// GET    /earthquakes/stats → authenticated, cached 60s, rate-limited
 router.route('/stats')
-  .get(protect, earthquakeController.getEarthquakeStats);
+  .head(protect, (req, res) => res.status(200).end())
+  .get(protect, analyticsLimiter, cache(60), earthquakeController.getEarthquakeStats);
 
-// GET    /api/v1/earthquakes/:id — public
-// PATCH  /api/v1/earthquakes/:id — admin only
-// DELETE /api/v1/earthquakes/:id — admin only
+// ── Document routes ─────────────────────────────────────────────────────────
+// HEAD   /earthquakes/:id → check existence without body
+// GET    /earthquakes/:id → public, cached 30s
+// PATCH  /earthquakes/:id → admin only
+// DELETE /earthquakes/:id → admin only
 router.route('/:id')
-  .get(idParamRules, validate, earthquakeController.getEarthquakeById)
-  .patch(protect, restrictTo('admin'), idParamRules, updateEarthquakeRules, validate, earthquakeController.updateEarthquake)
-  .delete(protect, restrictTo('admin'), idParamRules, validate, earthquakeController.deleteEarthquake);
+  .head(idParamRules, validate, (req, res) => res.status(200).end())
+  .options((req, res) => {
+    res.setHeader('Allow', 'HEAD, GET, PATCH, DELETE, OPTIONS');
+    res.status(204).end();
+  })
+  .get(idParamRules, validate, cache(30), earthquakeController.getEarthquakeById)
+  .patch(protect, restrictTo('admin'), adminLimiter, idParamRules, updateEarthquakeRules, validate, earthquakeController.updateEarthquake)
+  .delete(protect, restrictTo('admin'), adminLimiter, idParamRules, validate, earthquakeController.deleteEarthquake);
 
 module.exports = router;
